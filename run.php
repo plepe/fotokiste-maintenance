@@ -29,11 +29,13 @@ function get_user_id ($sender) {
     return $drupal_user[$sender['mail']];
   }
 
+  $id = explode('@', $sender['mail'])[0];
+
   $user = [
-    'name' => [['value' => $sender['name']]],
+    'name' => [['value' => $id]],
     'field_name' => [['value' => $sender['name']]],
     'mail' => [['value' => $sender['mail']]],
-    'status' => [['value' => false]],
+    'status' => [['value' => true]],
   ];
 
   $user = $drupal->userSave(null, $user);
