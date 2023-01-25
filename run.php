@@ -221,6 +221,13 @@ function add_attachment (&$node, $elem) {
   global $drupal;
   global $attachment_types;
 
+  $existing = $drupal->loadRestExport('/rest/media?oldid=' . urlencode("{$elem['kistenname']}/{$elem['msg_number']}/{$elem['att_id']}"), ['paginated' => false]);
+  if (sizeof($existing)) {
+    print "found attachment\n";
+    $node['field_attachments'][] = $existing[0]['mid'][0]['value'];
+    return;
+  }
+
   $filepath = "/home/tramway/fotokiste_orig/attach/{$elem['kistenname']}/{$elem['msg_number']}_{$elem['att_id']}";
   if (!file_exists($filepath)) {
     print "{$filepath} does not exist!\n";
@@ -288,7 +295,12 @@ if (!$res) {
 }
 
 while ($elem = $res->fetch()) {
-  print_r($elem);
+  $nodes = $drupal->loadRestExport('/rest/content?type=message&oldid=' . urlencode("{$elem['kistenname']}/{$elem['msg_number']}"), ['paginated' => false]);
+  if (sizeof($nodes)) {
+    print "- Skip {$elem['kistenname']}/{$elem['msg_number']} - already exist\n";
+    continue;
+  }
+
   $node = [
     'type' => [['target_id' => 'message']],
     'uid' => [['target_id' => get_user_id($elem['sender'])]],
