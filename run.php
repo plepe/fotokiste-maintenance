@@ -8,6 +8,37 @@ $drupal = new DrupalRestAPI([
   'authMethod' => 'cookie',
 ]);
 
+$attachment_types = [
+  'image/pjpeg' => [
+    'media_bundle' => 'photography',
+    'file_field' => 'field_image',
+    'default_filename' => 'image.jpg',
+  ],
+  'image/jpeg' => [
+    'media_bundle' => 'photography',
+    'file_field' => 'field_image',
+    'default_filename' => 'image.jpg',
+  ],
+  'image/gif' => [
+    'media_bundle' => 'photography',
+    'file_field' => 'field_image',
+    'default_filename' => 'image.gif',
+  ],
+  'image/png' => [
+    'media_bundle' => 'photography',
+    'file_field' => 'field_image',
+    'default_filename' => 'image.png',
+  ],
+  'text/plain' => [
+    'media_bundle' => 'document',
+    'file_field' => 'field_media_document',
+    'default_filename' => 'file.txt',
+  ],
+  'multipart/appledouble' => [
+    'skip' => true,
+  ],
+];
+
 
 $drupal_user = [];
 foreach ($drupal->loadRestExport('/rest/user', ['paginated' => true]) as $user) {
@@ -184,23 +215,42 @@ function convert_title ($str) {
 
 function add_attachment (&$node, $elem) {
   global $drupal;
+  global $attachment_types;
 
   $filepath = "/home/tramway/fotokiste_orig/attach/{$elem['kistenname']}/{$elem['msg_number']}_{$elem['att_id']}";
+  if (!file_exists($filepath)) {
+    print "{$filepath} does not exist!\n";
+    return;
+  }
+
+  if (array_key_exists($elem['content_type'], $attachment_types)) {
+    $media_type = $attachment_types[$elem['content_type']];
+  } else {
+    print "UNKNOWN MEDIA TYPE! ";
+    print_r($elem);
+    exit(1);
+  }
+
+  if (array_key_exists('skip', $media_type)) {
+    print "skipping {$elem['content_type']}\n";
+    return;
+  }
 
   $file = $drupal->fileUpload([
-      'filename' => $elem['filename'],
+      'filename' => $elem['filename'] ? $elem['filename'] : $media_type['default_filename'],
       'content' => file_get_contents($filepath)
-    ], 'media/photography/field_image'
+    ], "media/{$media_type['media_bundle']}/{$media_type['file_field']}"
   );
 
   $media = [
-    'bundle' => [['target_id' => 'photography']],
-    'name' => [['value' => $elem['filename']]],
+    'bundle' => [['target_id' => $media_type['media_bundle']]],
+    'name' => [['value' => $elem['filename'] ? $elem['filename'] : $media_type['default_filename']]],
     'uid' => $node['uid'],
     'created' => $node['created'],
-    'field_image' => [['target_id' => $file['fid'][0]['value']]],
     'field_oldid' => [['value' => "{$elem['kistenname']}/{$elem['msg_number']}/{$elem['att_id']}"]],
   ];
+
+  $media[$media_type['file_field']] = [['target_id' => $file['fid'][0]['value']]];
 
   $media = $drupal->mediaSave(null, $media);
 
