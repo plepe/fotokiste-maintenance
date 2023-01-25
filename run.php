@@ -19,6 +19,63 @@ foreach ($drupal->loadRestExport('/rest/user', ['paginated' => true]) as $user) 
   }
 }
 
+$tags = [];
+foreach ($drupal->loadRestExport('/rest/tags', ['paginated' => true]) as $tag) {
+  $tags[$tag['name'][0]['value']] = $tag['tid'][0]['value'];
+}
+//$m = $drupal->mediaGet(21);
+//$u = [
+//  'bundle' => $m['bundle'],
+//  'field_oldid' => [['value' => 'fotokiste-archiv/4/1']],
+//];
+//$drupal->mediaSave(21, $u);
+//update_media($drupal->mediaGet(21));
+
+function get_tag ($str) {
+  global $tags;
+  global $drupal;
+
+  if (!array_key_exists($str, $tags)) {
+    $tag = [
+      'vid' => [['target_id' => 'tags']],
+      'name' => [['value' => $str]],
+    ];
+
+    $tag = $drupal->taxonomySave(null, $tag);
+
+    $tags[$tag['name'][0]['value']] = $tag['tid'][0]['value'];
+  }
+
+  return $tags[$str];
+}
+
+function update_media ($media) {
+  global $drupal;
+  global $db;
+
+  $oldid = explode('/', $media['field_oldid'][0]['value']);
+
+  $mediaUpdate = [
+    'bundle' => $media['bundle'],
+    'field_keywords' => $media['field_keywords'],
+  ];
+
+  $existingTags = [];
+  foreach ($media['field_keywords'] as $v) {
+    $existingTags[$v['target_id']] = true;
+  }
+
+  $resT = $db->query("select * from tag where kistenname=" . $db->quote($oldid[0]) . " and msg_number=" . $db->quote($oldid[1]) . " and att_id=" . $db->quote($oldid[2]));
+  while ($elemT = $resT->fetch()) {
+    $v = get_tag($elemT['tag']);
+    if (!array_key_exists($v, $existingTags)) {
+      $mediaUpdate['field_keywords'][] = ['target_id' => $v];
+    }
+  }
+
+  $drupal->mediaSave($media['mid'][0]['value'], $mediaUpdate);
+}
+
 function get_user_id ($sender) {
   global $drupal_user;
   global $drupal;
@@ -142,9 +199,12 @@ function add_attachment (&$node, $elem) {
     'uid' => $node['uid'],
     'created' => $node['created'],
     'field_image' => [['target_id' => $file['fid'][0]['value']]],
+    'field_oldid' => [['value' => "{$elem['kistenname']}/{$elem['msg_number']}/{$elem['att_id']}"]],
   ];
 
   $media = $drupal->mediaSave(null, $media);
+
+  update_media($media);
 
   $node['field_attachments'][] = $media['mid'][0]['value'];
 }
@@ -179,9 +239,9 @@ while ($elem = $res->fetch()) {
     'type' => [['target_id' => 'message']],
     'uid' => [['target_id' => get_user_id($elem['sender'])]],
     'title' => [['value' => convert_title($elem['subject'])]],
-    'field_oldid' => [['value' => "{$elem['kistenname']}-{$elem['msg_number']}"]],
+    'field_oldid' => [['value' => "{$elem['kistenname']}/{$elem['msg_number']}"]],
     'created' => [['value' => $elem['date']]],
-    'body' => [['value' => convert_body($elem['body'])]],
+    'body' => [['value' => convert_body($elem['body']), 'format' => 'text']],
     'field_attachments' => [],
   ];
 
@@ -190,11 +250,7 @@ while ($elem = $res->fetch()) {
     add_attachment($node, $elemA);
   }
 
-//  $update = [
-//    'type' => [['target_id' => 'message']],
-//    'field_attachments' => $node['field_attachments'],
-//  ];
-//  $node = $drupal->nodeSave(1, $update);
-
   $node = $drupal->nodeSave(null, $node);
+
+  print "- Saved {$elem['kistenname']}/{$elem['msg_number']} -> {$node['nid'][0]['value']}\n";
 }
