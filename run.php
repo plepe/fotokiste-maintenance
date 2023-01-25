@@ -210,6 +210,10 @@ function convert_title ($str) {
     return trim(trim($m[1]) . ' ' . trim($m[2]));
   }
 
+  if (!$str) {
+    $str = '(leer)';
+  }
+
   return $str;
 }
 
