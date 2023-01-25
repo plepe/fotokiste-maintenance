@@ -297,6 +297,17 @@ if (!$res) {
 while ($elem = $res->fetch()) {
   $nodes = $drupal->loadRestExport('/rest/content?type=message&oldid=' . urlencode("{$elem['kistenname']}/{$elem['msg_number']}"), ['paginated' => false]);
   if (sizeof($nodes)) {
+    $node = $nodes[0];
+    if ($elem['replyto'] && !sizeof($node['field_reply_to_msgid'])) {
+      $update = [
+        'type' => $node['type'],
+	'field_reply_to_msgid' => [['value' => $elem['replyto']]],
+      ];
+
+      print "  updating reply\n";
+      $drupal->nodeSave($node['nid'][0]['value'], $update);
+    }
+
     print "- Skip {$elem['kistenname']}/{$elem['msg_number']} - already exist\n";
     continue;
   }
@@ -310,6 +321,10 @@ while ($elem = $res->fetch()) {
     'body' => [['value' => convert_body($elem['body']), 'format' => 'text']],
     'field_attachments' => [],
   ];
+
+  if ($elem['replyto']) {
+    $node['field_reply_to_msgid'] = [['value' => $elem['replyto']]];
+  }
 
   $resA = $db->query("select * from attachment where kistenname=" . $db->quote($elem['kistenname']) . " and msg_number=" . $db->quote($elem['msg_number']));
   while ($elemA = $resA->fetch()) {
