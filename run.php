@@ -288,7 +288,7 @@ function update_all_files () {
   }
 }
 
-$res = $db->query('select sender from message group by sender');
+$res = $db->query("select * from message order by msg_number");
 if (!$res) {
   print_r($db->errorInfo());
   exit(1);
