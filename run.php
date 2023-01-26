@@ -34,6 +34,13 @@ $attachment_types = [
     'file_field' => 'field_media_document',
     'default_filename' => 'file.txt',
   ],
+  'video/quicktime' => [
+    'media_bundle' => 'video',
+    'file_field' => 'field_media_video_file',
+    'default_filename' => 'video.mp4',
+    'out_extension' => 'mp4',
+    'recode' => 'ffmpeg -y -i %in -acodec aac -strict experimental -vcodec libx264 -vf "scale=1650:-1" -preset slow -crf 28 -pix_fmt yuv420p -threads 4 %out',
+  ],
   'multipart/appledouble' => [
     'skip' => true,
   ],
@@ -247,12 +254,6 @@ function add_attachment (&$node, $elem) {
     return;
   }
 
-  $file = $drupal->fileUpload([
-      'filename' => $elem['filename'] ? $elem['filename'] : $media_type['default_filename'],
-      'content' => file_get_contents($filepath)
-    ], "media/{$media_type['media_bundle']}/{$media_type['file_field']}"
-  );
-
   $media = [
     'bundle' => [['target_id' => $media_type['media_bundle']]],
     'name' => [['value' => $elem['filename'] ? $elem['filename'] : $media_type['default_filename']]],
@@ -260,6 +261,30 @@ function add_attachment (&$node, $elem) {
     'created' => $node['created'],
     'field_oldid' => [['value' => "{$elem['kistenname']}/{$elem['msg_number']}/{$elem['att_id']}"]],
   ];
+
+  if (array_key_exists('recode', $media_type)) {
+    $recode_cmd = strtr($media_type['recode'], [
+      '%in' => $filepath,
+      '%out' => "/tmp/tmp." . $media_type['out_extension'],
+    ]);
+    system($recode_cmd);
+
+    $original_file = $drupal->fileUpload([
+	'filename' => $elem['filename'] ? $elem['filename'] : $media_type['default_filename'],
+	'content' => file_get_contents($filepath)
+      ], "media/{$media_type['media_bundle']}/field_original_file");
+
+    $media['field_original_file'] = [['target_id' => $original_file['fid'][0]['value']]];
+
+    $filepath = "/tmp/tmp." . $media_type['out_extension'];
+    $elem['filename'] = pathinfo($elem['filename'])['filename'] . '.' . $media_type['out_extension'];
+  }
+
+  $file = $drupal->fileUpload([
+      'filename' => $elem['filename'] ? $elem['filename'] : $media_type['default_filename'],
+      'content' => file_get_contents($filepath)
+    ], "media/{$media_type['media_bundle']}/{$media_type['file_field']}"
+  );
 
   $media[$media_type['file_field']] = [['target_id' => $file['fid'][0]['value']]];
 
