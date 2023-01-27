@@ -249,8 +249,14 @@ function add_attachment (&$node, $elem) {
     return;
   }
 
-  if (array_key_exists($elem['content_type'], $attachment_types)) {
-    $media_type = $attachment_types[$elem['content_type']];
+  if (!filesize($filepath)) {
+    print "{$filepath} is empty!\n";
+    return;
+  }
+
+  $content_type = strtolower($elem['content_type']);
+  if (array_key_exists($content_type, $attachment_types)) {
+    $media_type = $attachment_types[$content_type];
   } else {
     print "UNKNOWN MEDIA TYPE! ";
     print_r($elem);
@@ -269,6 +275,11 @@ function add_attachment (&$node, $elem) {
     'created' => $node['created'],
     'field_oldid' => [['value' => "{$elem['kistenname']}/{$elem['msg_number']}/{$elem['att_id']}"]],
   ];
+
+  if (preg_match('/^(.*\.jpg)./i', $elem['filename'], $m)) {
+    print "  Changing filename from {$elem['filename']} to {$m[1]}\n";
+    $elem['filename'] = $m[1];
+  }
 
   if (array_key_exists('recode', $media_type)) {
     $recode_cmd = strtr($media_type['recode'], [
