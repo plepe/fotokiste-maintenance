@@ -114,11 +114,17 @@ function update_media ($media) {
   $drupal->mediaSave($media['mid'][0]['value'], $mediaUpdate);
 }
 
-function get_user_id ($sender) {
+function get_user_id ($_sender) {
   global $drupal_user;
   global $drupal;
 
-  $sender = parse_sender($sender);
+  $sender = parse_sender($_sender);
+
+  if (!array_key_exists('mail', $sender)) {
+    print "UNKNOWN SENDER {$_sender}\n";
+    return null;
+  }
+
   $sender['mail'] = strtolower($sender['mail']);
 
   if (array_key_exists($sender['mail'], $drupal_user)) {
@@ -134,6 +140,7 @@ function get_user_id ($sender) {
     'status' => [['value' => true]],
   ];
 
+  print "Create User: {$sender['mail']}\n";
   $user = $drupal->userSave(null, $user);
 
   $drupal_user[$sender['mail']] = $user['uid'][0]['value'];
@@ -142,7 +149,7 @@ function get_user_id ($sender) {
 
 function parse_sender ($sender) {
   if (preg_match('/&(lt|gt|quot);/', $sender)) {
-    $sender = strtolower(html_entity_decode($sender));
+    $sender = html_entity_decode($sender);
   }
 
   if (preg_match('/^"?\'([^\']*)\' ([^\[]*) \[[A-Za-z0-9-]+\]" <.*@yahoogroups.com>$/', $sender, $m)) {
