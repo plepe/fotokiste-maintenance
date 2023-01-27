@@ -9,6 +9,16 @@ $drupal = new DrupalRestAPI([
 ]);
 
 $attachment_types = [
+  'audio/wav' => [
+    'media_bundle' => 'audio',
+    'file_field' => 'field_media_audio_file',
+    'default_filename' => 'image.wav',
+  ],
+  'audio/microsoft-wave' => [
+    'media_bundle' => 'audio',
+    'file_field' => 'field_media_audio_file',
+    'default_filename' => 'image.wav',
+  ],
   'image/pjpeg' => [
     'media_bundle' => 'photography',
     'file_field' => 'field_image',
@@ -18,6 +28,25 @@ $attachment_types = [
     'media_bundle' => 'photography',
     'file_field' => 'field_image',
     'default_filename' => 'image.jpg',
+  ],
+  'image/jpg' => [
+    'media_bundle' => 'photography',
+    'file_field' => 'field_image',
+    'default_filename' => 'image.jpg',
+  ],
+  'image/bmp' => [
+    'media_bundle' => 'photography',
+    'file_field' => 'field_image',
+    'default_filename' => 'image.jpg',
+    'out_extension' => 'jpg',
+    'recode' => 'convert %in %out',
+  ],
+  'image/tiff' => [
+    'media_bundle' => 'photography',
+    'file_field' => 'field_image',
+    'default_filename' => 'image.jpg',
+    'out_extension' => 'jpg',
+    'recode' => 'convert %in %out',
   ],
   'image/gif' => [
     'media_bundle' => 'photography',
@@ -34,12 +63,46 @@ $attachment_types = [
     'file_field' => 'field_media_document',
     'default_filename' => 'file.txt',
   ],
+  'application/pdf' => [
+    'media_bundle' => 'document',
+    'file_field' => 'field_media_document',
+    'default_filename' => 'file.pdf',
+  ],
+  'application/msword' => [
+    'media_bundle' => 'document',
+    'file_field' => 'field_media_document',
+    'default_filename' => 'file.doc',
+  ],
+  'application/vnd.ms-excel' => [
+    'media_bundle' => 'document',
+    'file_field' => 'field_media_document',
+    'default_filename' => 'file.xls',
+  ],
+  'application/x-zip-compressed' => [
+//    'media_bundle' => 'datei',
+//    'file_field' => 'field_original_file',
+//    'default_filename' => 'file.zip',
+    'skip' => true,
+  ],
+  'application/x-msdownload' => [
+    'skip' => true,
+  ],
+  'application/octet-stream' => [
+    'skip' => true,
+  ],
+  'application/ms-tnef' => [
+    'skip' => true,
+  ],
+  'text/html' => [
+    'skip' => true,
+  ],
   'video/quicktime' => [
     'media_bundle' => 'video',
     'file_field' => 'field_media_video_file',
     'default_filename' => 'video.mp4',
     'out_extension' => 'mp4',
-    'recode' => 'ffmpeg -y -i %in -acodec aac -strict experimental -vcodec libx264 -vf "scale=1650:-1" -preset slow -crf 28 -pix_fmt yuv420p -threads 4 %out',
+# -vf "scale=1650:-1" 
+    'recode' => 'ffmpeg -y -i %in -acodec aac -strict experimental -vcodec libx264 -preset slow -crf 28 -pix_fmt yuv420p -threads 4 %out',
   ],
   'multipart/appledouble' => [
     'skip' => true,
