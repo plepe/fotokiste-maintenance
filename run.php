@@ -50,10 +50,10 @@ $attachment_types = [
 $drupal_user = [];
 foreach ($drupal->loadRestExport('/rest/user', ['paginated' => true]) as $user) {
   foreach ($user['mail'] as $mail) {
-    $drupal_user[$mail['value']] = $user['uid'][0]['value'];
+    $drupal_user[strtolower($mail['value'])] = $user['uid'][0]['value'];
   }
   foreach ($user['field_aliases'] as $mail) {
-    $drupal_user[$mail['value']] = $user['uid'][0]['value'];
+    $drupal_user[strtolower($mail['value'])] = $user['uid'][0]['value'];
   }
 }
 
@@ -119,6 +119,7 @@ function get_user_id ($sender) {
   global $drupal;
 
   $sender = parse_sender($sender);
+  $sender['mail'] = strtolower($sender['mail']);
 
   if (array_key_exists($sender['mail'], $drupal_user)) {
     return $drupal_user[$sender['mail']];
@@ -141,7 +142,7 @@ function get_user_id ($sender) {
 
 function parse_sender ($sender) {
   if (preg_match('/&(lt|gt|quot);/', $sender)) {
-    $sender = html_entity_decode($sender);
+    $sender = strtolower(html_entity_decode($sender));
   }
 
   if (preg_match('/^"?\'([^\']*)\' ([^\[]*) \[[A-Za-z0-9-]+\]" <.*@yahoogroups.com>$/', $sender, $m)) {
