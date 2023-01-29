@@ -314,7 +314,7 @@ function add_attachment (&$node, $elem) {
   global $drupal;
   global $attachment_types;
 
-  $existing = $drupal->loadRestExport('/rest/media?oldid=' . urlencode("{$elem['kistenname']}/{$elem['msg_number']}/{$elem['att_id']}"), ['paginated' => false]);
+  $existing = iterator_to_array($drupal->loadRestExport('/rest/media?oldid=' . urlencode("{$elem['kistenname']}/{$elem['msg_number']}/{$elem['att_id']}"), ['paginated' => false]));
   if (sizeof($existing)) {
     print "found attachment\n";
     $node['field_attachments'][] = $existing[0]['mid'][0]['value'];
@@ -420,14 +420,14 @@ function update_all_files () {
   }
 }
 
-$res = $db->query("select * from message order by msg_number");
+$res = $db->query("select * from message where kistenname='stadtverkehr-austria-fotos' and msg_number>12600 order by msg_number");
 if (!$res) {
   print_r($db->errorInfo());
   exit(1);
 }
 
 while ($elem = $res->fetch()) {
-  $nodes = $drupal->loadRestExport('/rest/content?type=message&oldid=' . urlencode("{$elem['kistenname']}/{$elem['msg_number']}"), ['paginated' => false]);
+  $nodes = iterator_to_array($drupal->loadRestExport('/rest/content?type=message&oldid=' . urlencode("{$elem['kistenname']}/{$elem['msg_number']}"), ['paginated' => false]));
   if (sizeof($nodes)) {
     $node = $nodes[0];
     if ($elem['replyto'] && !sizeof($node['field_reply_to_msgid'])) {
