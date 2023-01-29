@@ -16,6 +16,11 @@ $attachment_types = [
     'file_field' => 'field_media_audio_file',
     'default_filename' => 'image.mp3',
   ],
+  'audio/mpg' => [
+    'media_bundle' => 'audio',
+    'file_field' => 'field_media_audio_file',
+    'default_filename' => 'image.mp3',
+  ],
   'audio/microsoft-wave' => [
     'media_bundle' => 'audio',
     'file_field' => 'field_media_audio_file',
