@@ -183,6 +183,16 @@ function update_media ($media) {
 
   $resT = $db->query("select * from tag where kistenname=" . $db->quote($oldid[0]) . " and msg_number=" . $db->quote($oldid[1]) . " and att_id=" . $db->quote($oldid[2]));
   while ($elemT = $resT->fetch()) {
+    if (preg_match('/^[12][0-9][0-9x][0-9x](-.*|)$/', $elemT['tag'])) {
+      if (!sizeof($media['field_date_time'])) {
+	$mediaUpdate['field_date_time'] = [['value' => $elemT['tag']]];
+      } else {
+	print "  Got date {$elemT['tag']}, photo date {$media['field_date_time'][0]['value']}\n";
+      }
+
+      continue;
+    }
+
     $v = get_tag($elemT['tag']);
     if (!array_key_exists($v, $existingTags)) {
       $mediaUpdate['field_keywords'][] = ['target_id' => $v];
