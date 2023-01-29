@@ -430,7 +430,8 @@ function update_all_files () {
   }
 }
 
-$res = $db->query("select * from message where kistenname='stadtverkehr-austria-fotos' and msg_number>12600 order by msg_number");
+$msg_number = file_get_contents('msg_number');
+$res = $db->query("select * from message where kistenname='stadtverkehr-austria-fotos' and msg_number>" . $db->quote($msg_number) . " order by msg_number");
 if (!$res) {
   print_r($db->errorInfo());
   exit(1);
@@ -483,4 +484,5 @@ while ($elem = $res->fetch()) {
   $node = $drupal->nodeSave(null, $node);
 
   print "- Saved {$elem['kistenname']}/{$elem['msg_number']} -> {$node['nid'][0]['value']}\n";
+  file_put_contents('msg_number', $elem['msg_number']);
 }
