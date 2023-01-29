@@ -346,6 +346,10 @@ function add_attachment (&$node, $elem) {
     return;
   }
 
+  if (preg_match('/^[a-zA-Z0-9\+\/]+=*$/', $elem['filename'])) {
+    $elem['filename'] = utf8_encode(base64_decode($elem['filename']));
+  }
+
   $media = [
     'bundle' => [['target_id' => $media_type['media_bundle']]],
     'name' => [['value' => $elem['filename'] ? $elem['filename'] : $media_type['default_filename']]],
