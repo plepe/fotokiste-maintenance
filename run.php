@@ -28,6 +28,7 @@ $attachment_types = [
     'media_bundle' => 'photography',
     'file_field' => 'field_image',
     'default_filename' => 'image.jpg',
+    'default_original_filename' => 'image.tiff',
   ],
   'image/jpg' => [
     'media_bundle' => 'photography',
@@ -45,6 +46,7 @@ $attachment_types = [
     'media_bundle' => 'photography',
     'file_field' => 'field_image',
     'default_filename' => 'image.jpg',
+    'default_original_filename' => 'image.tiff',
     'out_extension' => 'jpg',
     'recode' => 'convert %in %out',
   ],
@@ -352,7 +354,7 @@ function add_attachment (&$node, $elem) {
     system($recode_cmd);
 
     $original_file = $drupal->fileUpload([
-	'filename' => $elem['filename'] ? $elem['filename'] : $media_type['default_filename'],
+	'filename' => $elem['filename'] ? $elem['filename'] : $media_type['default_original_filename'],
 	'content' => file_get_contents($filepath)
       ], "media/{$media_type['media_bundle']}/field_original_file");
 
