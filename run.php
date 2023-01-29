@@ -447,9 +447,16 @@ while ($elem = $res->fetch()) {
     continue;
   }
 
+  $user_id = get_user_id($elem['sender']);
+  if (!$user_id) {
+    print $elem['body'];
+    print "{$elem['kistenname']}/{$elem['msg_number']}\n";
+    exit(1);
+  }
+
   $node = [
     'type' => [['target_id' => 'message']],
-    'uid' => [['target_id' => get_user_id($elem['sender'])]],
+    'uid' => [['target_id' => $user_id]],
     'title' => [['value' => convert_title($elem['subject'])]],
     'field_oldid' => [['value' => "{$elem['kistenname']}/{$elem['msg_number']}"]],
     'created' => [['value' => $elem['date']]],
