@@ -1,0 +1,14 @@
+<?php
+$config = [
+  'database' => [
+    'dsn' => 'mysql:dbname=database',
+    'user' => 'username',
+    'pass' => 'password'
+  ],
+  'drupal' => [
+    'url' => 'https://example.com/',
+    'user' => 'admin',
+    'pass' => 'password',
+    'authMethod' => 'cookie',
+  ],
+];

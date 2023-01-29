@@ -1,12 +1,9 @@
 <?php
-$db = new PDO('mysql:dbname=fotokiste', 'skunk', 'PASSWORD');
+require 'conf.php';
 require 'lib/drupal-rest-php/drupal.php';
-$drupal = new DrupalRestAPI([
-  'url' => 'https://xover.mud.at/~tramway/fotokiste_neu',
-  'user' => 'plepelits@xover.mud.at',
-  'pass' => 'PASSWORD',
-  'authMethod' => 'cookie',
-]);
+
+$db = new PDO($config['database']['dsn'], $config['database']['user'], $config['database']['pass']);
+$drupal = new DrupalRestAPI($config['drupal']);
 
 $attachment_types = [
   'audio/wav' => [
