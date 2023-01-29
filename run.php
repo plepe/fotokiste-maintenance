@@ -368,7 +368,10 @@ function add_attachment (&$node, $elem) {
       '%in' => $filepath,
       '%out' => "/tmp/tmp." . $media_type['out_extension'],
     ]);
-    system($recode_cmd);
+    if (system($recode_cmd) === false) {
+      print "Error executing: {$recode_cmd}\n";
+      exit(1);
+    }
 
     $original_file = $drupal->fileUpload([
 	'filename' => $elem['filename'] ? $elem['filename'] : $media_type['default_original_filename'],
