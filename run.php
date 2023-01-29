@@ -368,6 +368,11 @@ function add_attachment (&$node, $elem) {
     $elem['filename'] = "{$elem['filename']}.{$extension}";
   }
 
+  if (preg_match('/^(.*\.jpg)./i', $elem['filename'], $m)) {
+    print "  Changing filename from {$elem['filename']} to {$m[1]}\n";
+    $elem['filename'] = $m[1];
+  }
+
   $media = [
     'bundle' => [['target_id' => $media_type['media_bundle']]],
     'name' => [['value' => $elem['filename'] ? $elem['filename'] : $media_type['default_filename']]],
@@ -375,11 +380,6 @@ function add_attachment (&$node, $elem) {
     'created' => $node['created'],
     'field_oldid' => [['value' => "{$elem['kistenname']}/{$elem['msg_number']}/{$elem['att_id']}"]],
   ];
-
-  if (preg_match('/^(.*\.jpg)./i', $elem['filename'], $m)) {
-    print "  Changing filename from {$elem['filename']} to {$m[1]}\n";
-    $elem['filename'] = $m[1];
-  }
 
   if (array_key_exists('recode', $media_type)) {
     $recode_cmd = strtr($media_type['recode'], [
