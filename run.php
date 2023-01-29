@@ -14,6 +14,11 @@ $attachment_types = [
     'file_field' => 'field_media_audio_file',
     'default_filename' => 'image.wav',
   ],
+  'audio/mpeg' => [
+    'media_bundle' => 'audio',
+    'file_field' => 'field_media_audio_file',
+    'default_filename' => 'image.mp3',
+  ],
   'audio/microsoft-wave' => [
     'media_bundle' => 'audio',
     'file_field' => 'field_media_audio_file',
@@ -80,6 +85,11 @@ $attachment_types = [
     'file_field' => 'field_media_document',
     'default_filename' => 'file.xls',
   ],
+  'application/vnd.ms-powerpoint' => [
+    'media_bundle' => 'document',
+    'file_field' => 'field_media_document',
+    'default_filename' => 'file.ppt',
+  ],
   'application/x-zip-compressed' => [
 //    'media_bundle' => 'datei',
 //    'file_field' => 'field_original_file',
@@ -96,6 +106,9 @@ $attachment_types = [
     'skip' => true,
   ],
   'text/html' => [
+    'skip' => true,
+  ],
+  'text/x-vcard' => [
     'skip' => true,
   ],
   'video/quicktime' => [
