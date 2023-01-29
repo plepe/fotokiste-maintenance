@@ -102,6 +102,9 @@ $attachment_types = [
   'application/octet-stream' => [
     'skip' => true,
   ],
+  'application/pkcs7-signature' => [
+    'skip' => true,
+  ],
   'application/ms-tnef' => [
     'skip' => true,
   ],
