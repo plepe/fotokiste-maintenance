@@ -349,8 +349,11 @@ function add_attachment (&$node, $elem) {
     return;
   }
 
-  if (preg_match('/^[a-zA-Z0-9\+\/]+=*$/', $elem['filename'])) {
-    $elem['filename'] = utf8_encode(base64_decode($elem['filename']));
+  print "  {$elem['filename']}\n";
+  if (!preg_match('/\./', $elem['filename'], $m)) {
+    $extension = explode('.', $media_type['default_filename'])[1];
+    print "  Changing filename from {$elem['filename']} to {$elem['filename']}.{$extension}\n";
+    $elem['filename'] = "{$elem['filename']}.{$extension}";
   }
 
   $media = [
