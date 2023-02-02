@@ -27,44 +27,44 @@ $attachment_types = [
     'default_filename' => 'image.wav',
   ],
   'image/pjpeg' => [
-    'media_bundle' => 'photography',
-    'file_field' => 'field_image',
+    'media_bundle' => 'image',
+    'file_field' => 'field_media_image',
     'default_filename' => 'image.jpg',
   ],
   'image/jpeg' => [
-    'media_bundle' => 'photography',
-    'file_field' => 'field_image',
+    'media_bundle' => 'image',
+    'file_field' => 'field_media_image',
     'default_filename' => 'image.jpg',
     'default_original_filename' => 'image.tiff',
   ],
   'image/jpg' => [
-    'media_bundle' => 'photography',
-    'file_field' => 'field_image',
+    'media_bundle' => 'image',
+    'file_field' => 'field_media_image',
     'default_filename' => 'image.jpg',
   ],
   'image/bmp' => [
-    'media_bundle' => 'photography',
-    'file_field' => 'field_image',
+    'media_bundle' => 'image',
+    'file_field' => 'field_media_image',
     'default_filename' => 'image.jpg',
     'out_extension' => 'jpg',
     'recode' => 'convert %in %out',
   ],
   'image/tiff' => [
-    'media_bundle' => 'photography',
-    'file_field' => 'field_image',
+    'media_bundle' => 'image',
+    'file_field' => 'field_media_image',
     'default_filename' => 'image.jpg',
     'default_original_filename' => 'image.tiff',
     'out_extension' => 'jpg',
     'recode' => 'convert %in %out',
   ],
   'image/gif' => [
-    'media_bundle' => 'photography',
-    'file_field' => 'field_image',
+    'media_bundle' => 'image',
+    'file_field' => 'field_media_image',
     'default_filename' => 'image.gif',
   ],
   'image/png' => [
-    'media_bundle' => 'photography',
-    'file_field' => 'field_image',
+    'media_bundle' => 'image',
+    'file_field' => 'field_media_image',
     'default_filename' => 'image.png',
   ],
   'text/plain' => [
@@ -178,11 +178,11 @@ function update_media ($media) {
 
   $mediaUpdate = [
     'bundle' => $media['bundle'],
-    'field_keywords' => $media['field_keywords'],
+    'field_tags' => $media['field_tags'],
   ];
 
   $existingTags = [];
-  foreach ($media['field_keywords'] as $v) {
+  foreach ($media['field_tags'] as $v) {
     $existingTags[$v['target_id']] = true;
   }
 
@@ -200,7 +200,7 @@ function update_media ($media) {
 
     $v = get_tag($elemT['tag']);
     if (!array_key_exists($v, $existingTags)) {
-      $mediaUpdate['field_keywords'][] = ['target_id' => $v];
+      $mediaUpdate['field_tags'][] = ['target_id' => $v];
     }
   }
 
