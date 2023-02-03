@@ -391,8 +391,14 @@ function add_attachment (&$node, $elem) {
       exit(1);
     }
 
+    $original_file_name = $elem['filename'] ? $elem['filename'] : $media_type['default_original_filename'];
+    if (preg_match('/\./', $original_file_name, $m)) {
+      $extension = explode('.', $media_type['default_original_filename'])[1];
+      print "  Changing filename from {$original_file_name}.{$extension}\n";
+      $original_file_name = "{$original_file_name}.{$extension}";
+    }
     $original_file = $drupal->fileUpload([
-	'filename' => $elem['filename'] ? $elem['filename'] : $media_type['default_original_filename'],
+	'filename' => $original_file_name,
 	'content' => file_get_contents($filepath)
       ], "media/{$media_type['media_bundle']}/field_original_file");
 
