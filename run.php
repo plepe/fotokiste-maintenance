@@ -189,10 +189,10 @@ function update_media ($media) {
   $resT = $db->query("select * from tag where kistenname=" . $db->quote($oldid[0]) . " and msg_number=" . $db->quote($oldid[1]) . " and att_id=" . $db->quote($oldid[2]));
   while ($elemT = $resT->fetch()) {
     if (preg_match('/^[12][0-9][0-9x][0-9x](-.*|)$/', $elemT['tag'])) {
-      if (!sizeof($media['field_date_time'])) {
-	$mediaUpdate['field_date_time'] = [['value' => $elemT['tag']]];
+      if (!sizeof($media['field_exif_datetime'])) {
+	$mediaUpdate['field_exif_datetime'] = [['value' => $elemT['tag']]];
       } else {
-	print "  Got date {$elemT['tag']}, photo date {$media['field_date_time'][0]['value']}\n";
+	print "  Got date {$elemT['tag']}, photo date {$media['field_exif_datetime'][0]['value']}\n";
       }
 
       continue;
@@ -472,6 +472,8 @@ while ($elem = $res->fetch()) {
     'uid' => [['target_id' => $user_id]],
     'title' => [['value' => convert_title($elem['subject'])]],
     'field_oldid' => [['value' => "{$elem['kistenname']}/{$elem['msg_number']}"]],
+    'field_kistenname' => [['value' => $elem['kistenname']]],
+    'field_msg_number' => [['value' => $elem['msg_number']]],
     'created' => [['value' => $elem['date']]],
     'body' => [['value' => convert_body($elem['body']), 'format' => 'text']],
     'field_attachments' => [],
