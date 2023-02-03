@@ -361,21 +361,22 @@ function add_attachment (&$node, $elem) {
     return;
   }
 
-  print "  {$elem['filename']}\n";
-  if (!preg_match('/\./', $elem['filename'], $m)) {
-    $extension = explode('.', $media_type['default_filename'])[1];
-    print "  Changing filename from {$elem['filename']} to {$elem['filename']}.{$extension}\n";
-    $elem['filename'] = "{$elem['filename']}.{$extension}";
+  $filename = $elem['filename'] ? $elem['filename'] : $media_type['default_filename'];
+  print "  {$filename}\n";
+  $extension = explode('.', $media_type['default_filename'])[1];
+  if (!preg_match('/\./', $filename, $m)) {
+    print "  Changing filename from {$filename} to {$filename}.{$extension}\n";
+    $filename = "{$filename}.{$extension}";
   }
 
-  if (preg_match('/^(.*\.jpg)./i', $elem['filename'], $m)) {
-    print "  Changing filename from {$elem['filename']} to {$m[1]}\n";
-    $elem['filename'] = $m[1];
+  if (preg_match("/^(.*\.jpg)./i", $filename, $m)) {
+    print "  Changing filename from {$filename} to {$m[1]}\n";
+    $filename = $m[1];
   }
 
   $media = [
     'bundle' => [['target_id' => $media_type['media_bundle']]],
-    'name' => [['value' => $elem['filename'] ? $elem['filename'] : $media_type['default_filename']]],
+    'name' => [['value' => $filename]],
     'uid' => $node['uid'],
     'created' => $node['created'],
     'field_oldid' => [['value' => "{$elem['kistenname']}/{$elem['msg_number']}/{$elem['att_id']}"]],
