@@ -21,6 +21,7 @@ function fotokiste_send_message($nid, $recipients) {
 
   foreach ($recipients as $r) {
     $mail = new PHPMailer(true);
+    $format = $r[2];
 
     //$mail->isSMTP();
     //$mail->Host = 'smtp.example.com';
@@ -34,8 +35,10 @@ function fotokiste_send_message($nid, $recipients) {
     $mail->CharSet = 'UTF-8';
     $mail->Encoding = 'base64';
 
-    foreach ($attachments as $a) {
-      $mail->addStringAttachment($a[0], $a[1]);
+    if ($format === 'full') {
+      foreach ($attachments as $a) {
+	$mail->addStringAttachment($a[0], $a[1]);
+      }
     }
 
     try {
@@ -57,6 +60,6 @@ function fotokisteMediaToAttachment ($mid) {
 }
 
 fotokiste_send_message(29294, [
-  ['Stephan Bösch-Plepelits', 'skunk@xover.mud.at'],
-  ['Test', 'skunk@cg.tuwien.ac.at'],
+  ['Stephan Bösch-Plepelits', 'skunk@xover.mud.at', 'full'],
+  ['Test', 'skunk@cg.tuwien.ac.at', 'plain'],
 ]);
