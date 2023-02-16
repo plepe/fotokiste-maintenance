@@ -7,11 +7,14 @@ use PHPMailer\PHPMailer\Exception;
 
 $drupal = new DrupalRestAPI($config['drupal']);
 
-function fotokiste_send_message($nid, $recipients) {
+function fotokiste_send_message($node, $recipients) {
   global $drupal;
   global $config;
 
-  $node = $drupal->nodeGet($nid);
+  if (is_string($node) || is_int($node)) {
+    $node = $drupal->nodeGet($node);
+  }
+
   $author = $drupal->userGet($node['uid'][0]['target_id']);
   $attachments = [];
   foreach ($node['field_attachments'] as $i => $attachment) {
