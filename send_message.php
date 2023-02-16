@@ -29,11 +29,19 @@ function fotokiste_send_message($nid, $recipients) {
     $mail->setFrom($config['mail']['from'], "{$author['field_name'][0]['value']} via {$config['mail']['sender']}");
     $mail->addAddress($r[1], $r[0]);
 
+    $text = $node['body'][0]['value'];
+    $url = "{$config['drupal']['url']}{$node['path'][0]['alias']}";
+    if ($node['body'][0]['format'] !== 'text') {
+      $text .= "<hr>Lies diese Mail online: <a href=\"{$url}\">{$url}</a>";
+    }
+    else {
+      $text .= "\n--------------------------------------------------\nLies diese Mail online: {$url}";
+    }
+
     $mail->isHTML($node['body'][0]['format'] !== 'text');
-    $mail->Subject = $node['title'][0]['value'];
-    $mail->Body = $node['body'][0]['value'];
+    $mail->Subject = "{$config['mail']['subjectPrefix']}{$node['title'][0]['value']}";
+    $mail->Body = $text;
     $mail->CharSet = 'UTF-8';
-    $mail->Encoding = 'base64';
 
     if ($format === 'full') {
       foreach ($attachments as $a) {
