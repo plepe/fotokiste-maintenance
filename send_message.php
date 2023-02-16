@@ -12,37 +12,39 @@ function fotokiste_send_message($nid, $recipients) {
   global $config;
 
   $node = $drupal->nodeGet($nid);
-
-  $mail = new PHPMailer(true);
-
-//  $mail->isSMTP();
-//  $mail->Host = 'smtp.example.com';
-  $user = $drupal->userGet($node['uid'][0]['target_id']);
-
-  $mail->setFrom($config['mail']['from'], "{$user['field_name'][0]['value']} via {$config['mail']['sender']}");
-  foreach ($recipients as $r) {
-    $mail->addAddress($r[1], $r[0]);
-  }
-
-  $mail->isHTML($node['body'][0]['format'] !== 'text');
-  $mail->Subject = $node['title'][0]['value'];
-  $mail->Body = $node['body'][0]['value'];
-  $mail->CharSet = 'UTF-8';
-  $mail->Encoding = 'base64';
-
+  $author = $drupal->userGet($node['uid'][0]['target_id']);
+  $attachments = [];
   foreach ($node['field_attachments'] as $i => $attachment) {
-    [$file, $fileName] = fotokisteMediaToAttachment($attachment['target_id']);
-    $mail->addStringAttachment($file, $fileName);
+    $attachments[] = fotokisteMediaToAttachment($attachment['target_id']);
   }
 
-  try {
-    $mail->send();
-  }
-  catch (Exception $e) {
-    print $mail->ErrorInfo;
-  }
 
-  //print_r($node);
+  foreach ($recipients as $r) {
+    $mail = new PHPMailer(true);
+
+    //$mail->isSMTP();
+    //$mail->Host = 'smtp.example.com';
+
+    $mail->setFrom($config['mail']['from'], "{$author['field_name'][0]['value']} via {$config['mail']['sender']}");
+    $mail->addAddress($r[1], $r[0]);
+
+    $mail->isHTML($node['body'][0]['format'] !== 'text');
+    $mail->Subject = $node['title'][0]['value'];
+    $mail->Body = $node['body'][0]['value'];
+    $mail->CharSet = 'UTF-8';
+    $mail->Encoding = 'base64';
+
+    foreach ($attachments as $a) {
+      $mail->addStringAttachment($a[0], $a[1]);
+    }
+
+    try {
+      $mail->send();
+    }
+    catch (Exception $e) {
+      print $mail->ErrorInfo;
+    }
+  }
 }
 
 function fotokisteMediaToAttachment ($mid) {
@@ -54,6 +56,7 @@ function fotokisteMediaToAttachment ($mid) {
   return [$content, $media['name'][0]['value']];
 }
 
-fotokiste_send_message(29260, [
-  ['Stephan Bösch-Plepelits', 'skunk@xover.mud.at']
+fotokiste_send_message(29294, [
+  ['Stephan Bösch-Plepelits', 'skunk@xover.mud.at'],
+  ['Test', 'skunk@cg.tuwien.ac.at'],
 ]);
