@@ -70,7 +70,22 @@ function fotokisteMediaToAttachment ($mid) {
   return [$content, $media['name'][0]['value']];
 }
 
-fotokiste_send_message(29294, [
-  ['Stephan Bösch-Plepelits', 'skunk@xover.mud.at', 'full'],
-  ['Test', 'skunk@cg.tuwien.ac.at', 'plain'],
-]);
+
+$last_send = trim(file_get_contents('last_send'));
+if (!$last_send) {
+  print "LAST SEND IS NULL: {$last_send}\n";
+  exit(1);
+}
+
+$users = null;
+foreach ($drupal->loadRestExport("/rest/content?type=message&nid_after={$last_send}", ['paginated' => true]) as $node) {
+  if ($users === null) {
+    $users = [];
+    foreach ($drupal->loadRestExport("/rest/user/mail_subscription", ['paginated' => true]) as $user) {
+      $users[] = [$user['field_name'][0]['value'], $user['mail'][0]['value'], $user['field_mail_subscription'][0]['value']];
+    }
+  }
+
+  file_put_contents('last_send', $node['nid'][0]['value']);
+  fotokiste_send_message($node, $users);
+}
