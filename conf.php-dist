@@ -11,4 +11,8 @@ $config = [
     'pass' => 'password',
     'authMethod' => 'cookie',
   ],
+  'mail' => [
+    'from' => 'stadtverkehr-austria-fotos@example.com',
+    'sender' => 'Stadtverkehr-Austria-Fotos',
+  ],
 ];

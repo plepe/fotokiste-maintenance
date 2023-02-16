@@ -17,8 +17,9 @@ function fotokiste_send_message($nid, $recipients) {
 
 //  $mail->isSMTP();
 //  $mail->Host = 'smtp.example.com';
+  $user = $drupal->userGet($node['uid'][0]['target_id']);
 
-  $mail->setFrom($config['mail']['from']);
+  $mail->setFrom($config['mail']['from'], "{$user['field_name'][0]['value']} via {$config['mail']['sender']}");
   foreach ($recipients as $r) {
     $mail->addAddress($r[1], $r[0]);
   }
