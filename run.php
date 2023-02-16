@@ -177,7 +177,9 @@ foreach ($drupal->loadRestExport('/rest/user', ['paginated' => true]) as $user) 
 
 $tags = [];
 foreach ($drupal->loadRestExport('/rest/tags', ['paginated' => true]) as $tag) {
-  $tags[$tag['name'][0]['value']] = $tag['tid'][0]['value'];
+  if (!array_key_exists($tag['name'][0]['value'], $tags)) {
+    $tags[$tag['name'][0]['value']] = $tag['tid'][0]['value'];
+  }
 }
 //$m = $drupal->mediaGet(21);
 //$u = [
@@ -268,7 +270,7 @@ function get_user_id ($_sender) {
     'status' => [['value' => true]],
   ];
 
-  print "Create User: {$sender['mail']}\n";
+  print "Create User: "; print_r($sender);
   $user = $drupal->userSave(null, $user);
 
   $drupal_user[$sender['mail']] = $user['uid'][0]['value'];
@@ -441,11 +443,11 @@ function add_attachment (&$node, $elem) {
     $media['field_original_file'] = [['target_id' => $original_file['fid'][0]['value']]];
 
     $filepath = "/tmp/tmp." . $media_type['out_extension'];
-    $elem['filename'] = pathinfo($elem['filename'])['filename'] . '.' . $media_type['out_extension'];
+    $filename = pathinfo($filename)['filename'] . '.' . $media_type['out_extension'];
   }
 
   $file = $drupal->fileUpload([
-      'filename' => $elem['filename'] ? $elem['filename'] : $media_type['default_filename'],
+      'filename' => $filename,
       'content' => file_get_contents($filepath)
     ], "media/{$media_type['media_bundle']}/{$media_type['file_field']}"
   );
