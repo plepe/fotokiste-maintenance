@@ -16,6 +16,11 @@ $attachment_types = [
     'file_field' => 'field_media_audio_file',
     'default_filename' => 'image.mp3',
   ],
+  'audio/mp3' => [
+    'media_bundle' => 'audio',
+    'file_field' => 'field_media_audio_file',
+    'default_filename' => 'image.mp3',
+  ],
   'audio/mpg' => [
     'media_bundle' => 'audio',
     'file_field' => 'field_media_audio_file',
@@ -67,6 +72,11 @@ $attachment_types = [
     'file_field' => 'field_media_image',
     'default_filename' => 'image.png',
   ],
+  'image/x-png' => [
+    'media_bundle' => 'image',
+    'file_field' => 'field_media_image',
+    'default_filename' => 'image.png',
+  ],
   'text/plain' => [
     'media_bundle' => 'document',
     'file_field' => 'field_media_document',
@@ -92,6 +102,16 @@ $attachment_types = [
     'file_field' => 'field_media_document',
     'default_filename' => 'file.ppt',
   ],
+  'application/vnd.google-earth.kmz' => [
+    'media_bundle' => 'document',
+    'file_field' => 'field_media_document',
+    'default_filename' => 'file.kmz',
+  ],
+  'text/x-tex' => [
+    'media_bundle' => 'document',
+    'file_field' => 'field_media_document',
+    'default_filename' => 'file.tex',
+  ],
   'application/x-zip-compressed' => [
 //    'media_bundle' => 'datei',
 //    'file_field' => 'field_original_file',
@@ -110,6 +130,9 @@ $attachment_types = [
   'application/ms-tnef' => [
     'skip' => true,
   ],
+  'message/rfc822' => [
+    'skip' => true,
+  ],
   'text/html' => [
     'skip' => true,
   ],
@@ -124,7 +147,19 @@ $attachment_types = [
 # -vf "scale=1650:-1" 
     'recode' => 'ffmpeg -y -i %in -acodec aac -strict experimental -vcodec libx264 -preset slow -crf 28 -pix_fmt yuv420p -threads 4 %out',
   ],
+  'video/x-ms-wmv' => [
+    'media_bundle' => 'video',
+    'file_field' => 'field_media_video_file',
+    'default_filename' => 'video.mp4',
+    'default_original_filename' => 'image.wmv',
+    'out_extension' => 'mp4',
+# -vf "scale=1650:-1" 
+    'recode' => 'ffmpeg -y -i %in -acodec aac -strict experimental -vcodec libx264 -preset slow -crf 28 -pix_fmt yuv420p -threads 4 %out',
+  ],
   'multipart/appledouble' => [
+    'skip' => true,
+  ],
+  'application/pgp-signature' => [
     'skip' => true,
   ],
 ];
