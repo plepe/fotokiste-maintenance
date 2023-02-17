@@ -45,8 +45,12 @@ function fotokiste_send_message($node, $recipients) {
       $text .= "\n--------------------------------------------------\nLies diese Mail online: {$url}";
     }
 
+    $mail->Subject = $node['title'][0]['value'];
+    if (strpos($mail->Subject, $config['mail']['subjectPrefix']) === false) {
+      $mail->Subject = "{$config['mail']['subjectPrefix']}{$mail->Subject}";
+    }
+
     $mail->isHTML($node['body'][0]['format'] !== 'text');
-    $mail->Subject = "{$config['mail']['subjectPrefix']}{$node['title'][0]['value']}";
     $mail->Body = $text;
     $mail->CharSet = 'UTF-8';
 
