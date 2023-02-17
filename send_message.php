@@ -47,7 +47,7 @@ function fotokiste_send_message($node, $recipients) {
 
     $mail->Subject = $node['title'][0]['value'];
     if (strpos($mail->Subject, $config['mail']['subjectPrefix']) === false) {
-      $mail->Subject = "{$config['mail']['subjectPrefix']}{$mail->Subject}";
+      $mail->Subject = "{$config['mail']['subjectPrefix']} {$mail->Subject}";
     }
 
     $mail->isHTML($node['body'][0]['format'] !== 'text');
