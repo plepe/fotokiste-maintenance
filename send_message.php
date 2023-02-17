@@ -50,6 +50,8 @@ function fotokiste_send_message($node, $recipients) {
       $mail->Subject = "{$config['mail']['subjectPrefix']} {$mail->Subject}";
     }
 
+    $mail->MessageDate = (new DateTime($node['created'][0]['value']))->format('r');
+
     $mail->isHTML($node['body'][0]['format'] !== 'text');
     $mail->Body = $text;
     $mail->CharSet = 'UTF-8';
