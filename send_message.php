@@ -31,6 +31,10 @@ function fotokiste_send_message($node, $recipients) {
 
     $mail->setFrom($config['mail']['from'], "{$author['field_name'][0]['value']} via {$config['mail']['sender']}");
     $mail->addAddress($r[1], $r[0]);
+    $mail->MessageID = "<node-{$node['nid'][0]['value']}@stadtverkehr-austria-fotos>";
+    foreach ($node['field_reply_to'] as $v) {
+      $mail->addCustomHeader('References', "<node-{$v['target_id']}@stadtverkehr-austria-fotos>");
+    }
 
     $text = $node['body'][0]['value'];
     $url = "{$config['drupal']['url']}{$node['path'][0]['alias']}";
