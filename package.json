@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "lint": "standard --fix receive_mail"
+  },
+  "devDependencies": {
+    "standard": "^17.0.0"
+  }
+}
