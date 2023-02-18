@@ -1,0 +1,227 @@
+#!/usr/bin/env node
+
+/*
+ * Parameter:
+ * -nX  save message with msg_number X
+ * -b   don't create a backup file
+*/
+
+var conf=require("./conf.js");
+var MailParser=require("mailparser").MailParser;
+var mysql=require("mysql");
+var fs=require('fs');
+var mod_getopt = require('posix-getopt');
+var async=require('async');
+
+const message = require('./inc/message.js')
+var wait={};
+
+function fix_text(text) {
+  var inv=String.fromCharCode(65533);
+
+  var a="";
+  var b="";
+  for(var i=0; i<91; i++) {
+    a+=inv;
+    b+="°";
+  }
+  text=text.replace(a, b);
+  text=text.replace(a, b);
+
+  text=text.replace(inv+"PNV", "ÖPNV");
+  text=text.replace("Enzyklop"+inv+"die", "Enzyklopädie");
+  text=text.replace("MItmachen", "Mitmachen");
+
+  return text;
+}
+
+function convert_html(mail) {
+  fs.writeFileSync("/tmp/fotokiste.tmp.html", mail.html);
+  exec("html2text /tmp/fotokiste.tmp.html",
+    function(mail, error, stdout, stderr) {
+      mail.text=stdout;
+      receive_mail(mail);
+    }.bind(this, mail)
+  );
+}
+
+function receive_text(mail) {
+  wait.text=true;
+
+  if(!mail.text) {
+    mail.text="";
+    convert_html(mail);
+
+    return;
+  }
+  mail.text=fix_text(mail.text);
+
+  var data={
+    body:       mail.text,
+  };
+
+  mysql_conn.query("update message set ? where kistenname=? and msg_number=?", [ data, conf.kiste, msg_number ], function() {
+    wait.text=false;
+
+    receive_mail_callback();
+  });
+}
+
+function receive_headers(headers) {
+  var d=new Date(headers.get('date'));
+
+  var data={
+    date:       d.getTime()/1000,
+    sender:     headers.get('from').text,
+    subject:    headers.get('subject'),
+    msg_id:     headers.get('message-id'),
+    zugriffe:   0
+  };
+
+  wait.headers=true;
+
+  console.log(headers.get('references'))
+  if(headers.references) {
+    if(typeof headers.references=="string")
+      data.replyto=headers.references;
+    else if(headers.references.length>0)
+      data.replyto=headers.references[headers.references.length-1];
+  }
+
+  mysql_conn.query("update message set ? where kistenname=? and msg_number=?", [ data, conf.kiste, msg_number ], function() {
+    wait.headers=false;
+
+    receive_mail_callback();
+  });
+}
+
+function receive_mail_callback() {
+  // Not done yet? Wait ...
+  for(var i in wait)
+    if(wait[i]===true) {
+      return;
+    }
+
+  var msg=new message(conf.kiste, msg_number);
+
+  msg.on('message_loaded', function(ob) {
+    ob.init(conf, function() {
+      mysql_conn.end();
+    });
+  });
+}
+
+
+function receive_attachment(attachment) {
+  let _att_id = ++att_id;
+  var funs=[];
+  var data={
+    kistenname: conf.kiste,
+    msg_number: msg_number,
+    att_id: _att_id,
+    filename: attachment.filename,
+    content_type: attachment.contentType
+  };
+
+  wait[_att_id]=true;
+
+  async.parallel([
+    // insert into database
+    (done) => {
+      mysql_conn.query("insert into attachment set ? on duplicate key update ?", [ data, data ], done);
+    },
+    (done) => {
+      let file = "attach/"+conf.kiste+"/"+msg_number+"_"+_att_id;
+      var output=fs.createWriteStream(file);
+      attachment.content.pipe(output);
+      attachment.content.on('end', () => attachment.release())
+
+      output.on("close", done);
+    }
+  ], (err) => receive_attachment_callback(_att_id))
+}
+
+function receive_attachment_callback(att_id) {
+  wait[att_id]=false;
+
+  receive_mail_callback();
+}
+
+function start_mail() {
+  if(backup)
+    mailcopy=fs.createWriteStream(conf.kiste+"/"+msg_number);
+
+  process.stdin.resume();
+  process.stdin.on('data', function(chunk) {
+    mailparser.write(chunk);
+
+    if(backup)
+      mailcopy.write(chunk);
+  });
+  process.stdin.on('end', function() {
+    mailparser.end();
+
+    if(backup)
+      mailcopy.end();
+  });
+}
+
+var att_id=0;
+var msg_number=0;
+var mailcopy;
+var backup=true;
+
+// Arguments handling
+var parser, option;
+parser=new mod_getopt.BasicParser("bn:", process.argv);
+opt={};
+while ((option = parser.getopt()) !== undefined) {
+  opt[option.option]=true;
+
+  if(option.optarg!==undefined)
+    opt[option.option]=option.optarg;
+
+  switch(option.option) {
+    case 'n':
+      msg_number=option.optarg;
+      break;
+    case 'b':
+      backup=false;
+      break;
+  }
+}
+
+var mailparser=new MailParser({
+  streamAttachments: true
+});
+wait.text=true;
+wait.headers=true;
+mailparser.on("data", data => {
+  if (data.type === 'attachment') {
+    receive_attachment(data)
+  }
+  if (data.type === 'text') {
+    receive_text(data)
+  }
+})
+mailparser.on("headers", receive_headers)
+
+var mysql_conn=mysql.createConnection(conf.db);
+message.set_mysql_conn(mysql_conn)
+mysql_conn.connect();
+
+if(msg_number>0) {
+  start_mail();
+}
+else {
+  mysql_conn.query("insert into message set ?",
+    { kistenname: conf.kiste },
+    function(err, result) {
+      if(err)
+        throw err;
+
+      msg_number=result.insertId;
+      start_mail();
+    }
+  );
+}
