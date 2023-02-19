@@ -7,7 +7,9 @@
   },
   "dependencies": {
     "async": "^3.2.4",
+    "drupal-rest": "git+https://github.com/plepe/drupal-rest-js.git",
     "mailparser": "^3.6.3",
+    "node-fetch": "^2.6.9",
     "posix-getopt": "^1.2.1"
   }
 }

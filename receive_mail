@@ -11,34 +11,37 @@ const MailParser = require('mailparser').MailParser
 const fs = require('fs')
 const mod_getopt = require('posix-getopt')
 const async = require('async')
+const DrupalREST = require('drupal-rest')
+global.fetch = require('node-fetch')
 
+const drupal = new DrupalREST(conf.drupal)
+drupal.login(() => {
+  console.log('logged in')
+  start_mail()
+})
+
+const wait = []
 const node = {
-  body: [{}]
+  type: [{target_id: 'message'}],
+  body: [{}],
+  field_attachments: []
 }
 
 function receive_text (mail) {
   wait.text = false
-  node.body[0].value = value: mail.text
 }
 
 function receive_headers (headers) {
-  const d = new Date(headers.get('date'))
-
-  const data = {
-    date: d.getTime() / 1000,
-    sender: headers.get('from').text,
-    subject: headers.get('subject'),
-    msg_id: headers.get('message-id'),
-    zugriffe: 0
-  }
+  node.title = [{value: headers.get('subject')}]
+  node.created = [{value: new Date(headers.get('date')).toISOString().replace('.000Z', 'Z')}]
 
   wait.headers = true
 
-  console.log(headers.get('references'))
-  if (headers.references) {
-    if (typeof headers.references === 'string') { data.replyto = headers.references } else if (headers.references.length > 0) { data.replyto = headers.references[headers.references.length - 1] }
-  }
-
+  // console.log(headers.get('references'))
+//  if (headers.references) {
+//    if (typeof headers.references === 'string') { data.replyto = headers.references } else if (headers.references.length > 0) { data.replyto = headers.references[headers.references.length - 1] }
+//  }
+//
 //  mysql_conn.query('update message set ? where kistenname=? and msg_number=?', [data, conf.kiste, msg_number], function () {
 //    wait.headers = false
 //
@@ -64,32 +67,37 @@ function receive_mail_callback () {
 }
 
 function receive_attachment (attachment) {
-  const _att_id = ++att_id
-  const funs = []
-  const data = {
-    kistenname: conf.kiste,
-    msg_number,
-    att_id: _att_id,
-    filename: attachment.filename,
-    content_type: attachment.contentType
-  }
+  const callback = () => done()
+  const mediaRef = {target_id: null}
+  node.field_attachments.push(mediaRef)
+  wait.push(callback)
 
-  wait[_att_id] = true
-
-  async.parallel([
-    // insert into database
+  async.waterfall([
     (done) => {
-      // mysql_conn.query('insert into attachment set ? on duplicate key update ?', [data, data], done)
+      drupal.fileUpload({
+	filename: attachment.filename,
+	content: attachment.content,
+      }, 'media/image/field_media_image',
+      {},
+      done)},
+    (file, done) => {
+      attachment.release()
+
+      const media = {
+	bundle: [{ target_id: 'image' }],
+	name: [{ value: attachment.filename, }],
+	field_media_image: [{ target_id: file.fid[0].value }],
+      }
+
+      drupal.mediaSave(null, media, {}, done)
     },
-    (done) => {
-      const file = 'attach/' + conf.kiste + '/' + msg_number + '_' + _att_id
-      const output = fs.createWriteStream(file)
-      attachment.content.pipe(output)
-      attachment.content.on('end', () => attachment.release())
-
-      output.on('close', done)
+    (media, done) => {
+      mediaRef.target_id = media.mid[0].value
+      done()
+      callback()
     }
-  ], (err) => receive_attachment_callback(_att_id))
+  ])
+  //  content_type: attachment.contentType
 }
 
 function receive_attachment_callback (att_id) {
@@ -99,7 +107,7 @@ function receive_attachment_callback (att_id) {
 }
 
 function start_mail () {
-  if (backup) { mailcopy = fs.createWriteStream(conf.kiste + '/' + msg_number) }
+  if (backup) { mailcopy = fs.createWriteStream('/tmp/y') }
 
   process.stdin.resume()
   process.stdin.on('data', function (chunk) {
@@ -109,8 +117,13 @@ function start_mail () {
   })
   process.stdin.on('end', function () {
     mailparser.end()
-
     if (backup) { mailcopy.end() }
+
+    console.log(JSON.stringify(node, null, '  '))
+    global.setTimeout(() => {
+      console.log(JSON.stringify(node, null, '  '))
+      drupal.nodeSave(null, node, {}, () => console.log('saved'))
+    }, 5000)
   })
 }
 
@@ -144,29 +157,25 @@ var mailparser = new MailParser({
 wait.text = true
 wait.headers = true
 mailparser.on('data', data => {
+
   if (data.type === 'attachment') {
     receive_attachment(data)
   }
-  if (data.type === 'text') {
-    receive_text(data)
+  else if (data.type === 'text') {
+    node.body[0].value = data.html
+    node.body[0].format = 'basic_html'
+    // receive_text(data)
+    console.log(data)
+  }
+  else {
   }
 })
 mailparser.on('headers', receive_headers)
+mailparser.on('end', data => {
+  console.log('END', data)
+})
 
 //var mysql_conn = mysql.createConnection(conf.db)
 //message.set_mysql_conn(mysql_conn)
 //mysql_conn.connect()
 
-if (msg_number > 0) {
-  start_mail()
-} else {
-//  mysql_conn.query('insert into message set ?',
-//    { kistenname: conf.kiste },
-//    function (err, result) {
-//      if (err) { throw err }
-//
-//      msg_number = result.insertId
-//      start_mail()
-//    }
-//  )
-}
