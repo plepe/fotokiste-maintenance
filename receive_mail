@@ -6,65 +6,19 @@
  * -b   don't create a backup file
 */
 
-const conf = require('./conf.js')
+const conf = require('./conf.json')
 const MailParser = require('mailparser').MailParser
-const mysql = require('mysql')
 const fs = require('fs')
 const mod_getopt = require('posix-getopt')
 const async = require('async')
 
-const message = require('./inc/message.js')
-const wait = {}
-
-function fix_text (text) {
-  const inv = String.fromCharCode(65533)
-
-  let a = ''
-  let b = ''
-  for (let i = 0; i < 91; i++) {
-    a += inv
-    b += '°'
-  }
-  text = text.replace(a, b)
-  text = text.replace(a, b)
-
-  text = text.replace(inv + 'PNV', 'ÖPNV')
-  text = text.replace('Enzyklop' + inv + 'die', 'Enzyklopädie')
-  text = text.replace('MItmachen', 'Mitmachen')
-
-  return text
-}
-
-function convert_html (mail) {
-  fs.writeFileSync('/tmp/fotokiste.tmp.html', mail.html)
-  exec('html2text /tmp/fotokiste.tmp.html',
-    function (mail, error, stdout, stderr) {
-      mail.text = stdout
-      receive_mail(mail)
-    }.bind(this, mail)
-  )
+const node = {
+  body: [{}]
 }
 
 function receive_text (mail) {
-  wait.text = true
-
-  if (!mail.text) {
-    mail.text = ''
-    convert_html(mail)
-
-    return
-  }
-  mail.text = fix_text(mail.text)
-
-  const data = {
-    body: mail.text
-  }
-
-  mysql_conn.query('update message set ? where kistenname=? and msg_number=?', [data, conf.kiste, msg_number], function () {
-    wait.text = false
-
-    receive_mail_callback()
-  })
+  wait.text = false
+  node.body[0].value = value: mail.text
 }
 
 function receive_headers (headers) {
@@ -85,11 +39,11 @@ function receive_headers (headers) {
     if (typeof headers.references === 'string') { data.replyto = headers.references } else if (headers.references.length > 0) { data.replyto = headers.references[headers.references.length - 1] }
   }
 
-  mysql_conn.query('update message set ? where kistenname=? and msg_number=?', [data, conf.kiste, msg_number], function () {
-    wait.headers = false
-
-    receive_mail_callback()
-  })
+//  mysql_conn.query('update message set ? where kistenname=? and msg_number=?', [data, conf.kiste, msg_number], function () {
+//    wait.headers = false
+//
+//    receive_mail_callback()
+//  })
 }
 
 function receive_mail_callback () {
@@ -104,7 +58,7 @@ function receive_mail_callback () {
 
   msg.on('message_loaded', function (ob) {
     ob.init(conf, function () {
-      mysql_conn.end()
+      // mysql_conn.end()
     })
   })
 }
@@ -125,7 +79,7 @@ function receive_attachment (attachment) {
   async.parallel([
     // insert into database
     (done) => {
-      mysql_conn.query('insert into attachment set ? on duplicate key update ?', [data, data], done)
+      // mysql_conn.query('insert into attachment set ? on duplicate key update ?', [data, data], done)
     },
     (done) => {
       const file = 'attach/' + conf.kiste + '/' + msg_number + '_' + _att_id
@@ -199,20 +153,20 @@ mailparser.on('data', data => {
 })
 mailparser.on('headers', receive_headers)
 
-var mysql_conn = mysql.createConnection(conf.db)
-message.set_mysql_conn(mysql_conn)
-mysql_conn.connect()
+//var mysql_conn = mysql.createConnection(conf.db)
+//message.set_mysql_conn(mysql_conn)
+//mysql_conn.connect()
 
 if (msg_number > 0) {
   start_mail()
 } else {
-  mysql_conn.query('insert into message set ?',
-    { kistenname: conf.kiste },
-    function (err, result) {
-      if (err) { throw err }
-
-      msg_number = result.insertId
-      start_mail()
-    }
-  )
+//  mysql_conn.query('insert into message set ?',
+//    { kistenname: conf.kiste },
+//    function (err, result) {
+//      if (err) { throw err }
+//
+//      msg_number = result.insertId
+//      start_mail()
+//    }
+//  )
 }

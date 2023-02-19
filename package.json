@@ -4,5 +4,10 @@
   },
   "devDependencies": {
     "standard": "^17.0.0"
+  },
+  "dependencies": {
+    "async": "^3.2.4",
+    "mailparser": "^3.6.3",
+    "posix-getopt": "^1.2.1"
   }
 }
