@@ -54,35 +54,6 @@ function receive_headers (headers) {
     }
   })
 
-  wait.headers = true
-
-  // console.log(headers.get('references'))
-//  if (headers.references) {
-//    if (typeof headers.references === 'string') { data.replyto = headers.references } else if (headers.references.length > 0) { data.replyto = headers.references[headers.references.length - 1] }
-//  }
-//
-//  mysql_conn.query('update message set ? where kistenname=? and msg_number=?', [data, conf.kiste, msg_number], function () {
-//    wait.headers = false
-//
-//    receive_mail_callback()
-//  })
-}
-
-function receive_mail_callback () {
-  // Not done yet? Wait ...
-  for (const i in wait) {
-    if (wait[i] === true) {
-      return
-    }
-  }
-
-  const msg = new message(conf.kiste, msg_number)
-
-  msg.on('message_loaded', function (ob) {
-    ob.init(conf, function () {
-      // mysql_conn.end()
-    })
-  })
 }
 
 function receive_attachment (attachment) {
@@ -119,12 +90,6 @@ function receive_attachment (attachment) {
   //  content_type: attachment.contentType
 }
 
-function receive_attachment_callback (att_id) {
-  wait[att_id] = false
-
-  receive_mail_callback()
-}
-
 function start_mail () {
   if (backup) { mailcopy = fs.createWriteStream('/tmp/y') }
 
@@ -138,9 +103,7 @@ function start_mail () {
     mailparser.end()
     if (backup) { mailcopy.end() }
 
-    console.log(JSON.stringify(node, null, '  '))
     global.setTimeout(() => {
-      console.log(JSON.stringify(node, null, '  '))
       drupal.nodeSave(null, node, {}, () => console.log('saved'))
     }, 5000)
   })
@@ -199,7 +162,4 @@ mailparser.on('end', data => {
   console.log('END', data)
 })
 
-//var mysql_conn = mysql.createConnection(conf.db)
-//message.set_mysql_conn(mysql_conn)
-//mysql_conn.connect()
 
