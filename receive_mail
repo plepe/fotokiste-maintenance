@@ -22,6 +22,9 @@ drupal.login(() => {
 })
 
 const wait = []
+let from
+let user
+const attachments = []
 const node = {
   type: [{target_id: 'message'}],
   body: [{}],
@@ -46,18 +49,15 @@ function receive_headers (headers) {
     })
   }
 
-  const from = headers.get('from')
-  getUserFromMail(drupal, from.value[0], (err, result) => {
-    if (err) { console.error(err) }
-    if (result !== null) {
-      node.uid = [{target_id: result.uid[0].value}]
-    }
-  })
-
+  from = headers.get('from')
 }
 
 function receive_attachment (attachment) {
-  const callback = () => done()
+  attachments.push(attachment)
+  attachment.release()
+}
+
+function uploadAttachment (attachment, callback) {
   const mediaRef = {target_id: null}
   node.field_attachments.push(mediaRef)
   wait.push(callback)
@@ -71,7 +71,6 @@ function receive_attachment (attachment) {
       {},
       done)},
     (file, done) => {
-      attachment.release()
 
       const media = {
 	bundle: [{ target_id: 'image' }],
@@ -84,9 +83,8 @@ function receive_attachment (attachment) {
     (media, done) => {
       mediaRef.target_id = media.mid[0].value
       done()
-      callback()
     }
-  ])
+  ], callback)
   //  content_type: attachment.contentType
 }
 
@@ -96,16 +94,11 @@ function start_mail () {
   process.stdin.resume()
   process.stdin.on('data', function (chunk) {
     mailparser.write(chunk)
-
     if (backup) { mailcopy.write(chunk) }
   })
   process.stdin.on('end', function () {
     mailparser.end()
     if (backup) { mailcopy.end() }
-
-    global.setTimeout(() => {
-      drupal.nodeSave(null, node, {}, () => console.log('saved'))
-    }, 5000)
   })
 }
 
@@ -139,7 +132,6 @@ var mailparser = new MailParser({
 wait.text = true
 wait.headers = true
 mailparser.on('data', data => {
-
   if (data.type === 'attachment') {
     receive_attachment(data)
   }
@@ -152,14 +144,31 @@ mailparser.on('data', data => {
       node.body[0].format = 'text'
     }
 
-    console.log(data)
   }
   else {
   }
 })
 mailparser.on('headers', receive_headers)
 mailparser.on('end', data => {
-  console.log('END', data)
+  saveMessage()
 })
 
+function saveMessage (callback) {
+  async.waterfall([
+    (done) => getUserFromMail(drupal, from.value[0], (err, _user) => {
+      if (err) { return done(err) }
+      if (!_user) { return done(new Error('user not found')) }
+
+      user = _user
+      node.uid = [{target_id: user.uid[0].value}]
+      done()
+    }),
+    (done) => async.eachSeries(attachments, (attachment, done) => uploadAttachment(attachment, done), done),
+    (done) => {
+      drupal.nodeSave(null, node, {}, done)
+    }
+  ], (err) => {
+    if (err) { return console.error(err) }
+  })
+}
 
