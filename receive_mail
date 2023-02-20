@@ -12,6 +12,7 @@ const fs = require('fs')
 const mod_getopt = require('posix-getopt')
 const async = require('async')
 const DrupalREST = require('drupal-rest')
+const getUserFromMail = require('./src/getUserFromMail')
 global.fetch = require('node-fetch')
 
 const drupal = new DrupalREST(conf.drupal)
@@ -27,13 +28,31 @@ const node = {
   field_attachments: []
 }
 
-function receive_text (mail) {
-  wait.text = false
-}
-
 function receive_headers (headers) {
   node.title = [{value: headers.get('subject')}]
   node.created = [{value: new Date(headers.get('date')).toISOString().replace('.000Z', 'Z')}]
+
+  if (headers.get('references')) {
+    let references = headers.get('references')
+    if (typeof references === 'string') {
+      references = [references]
+    }
+
+    references.each(r => {
+      const m = r.match(/^<node-([0-9]+)@stadtverkehr-austria-fotos>/)
+      if (m) {
+	node.replyto = [{target_id: m[1]}]
+      }
+    })
+  }
+
+  const from = headers.get('from')
+  getUserFromMail(drupal, from.value[0], (err, result) => {
+    if (err) { console.error(err) }
+    if (result !== null) {
+      node.uid = [{target_id: result.uid[0].value}]
+    }
+  })
 
   wait.headers = true
 
@@ -162,9 +181,14 @@ mailparser.on('data', data => {
     receive_attachment(data)
   }
   else if (data.type === 'text') {
-    node.body[0].value = data.html
-    node.body[0].format = 'basic_html'
-    // receive_text(data)
+    if (data.html) {
+      node.body[0].value = data.html
+      node.body[0].format = 'basic_html'
+    } else {
+      node.body[0].value = data.text
+      node.body[0].format = 'text'
+    }
+
     console.log(data)
   }
   else {
