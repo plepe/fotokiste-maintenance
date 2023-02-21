@@ -7,6 +7,7 @@
 */
 
 const conf = require('./conf.json')
+const attachment_types = require('./attachment_types.json')
 const MailParser = require('mailparser').MailParser
 const fs = require('fs')
 const mod_getopt = require('posix-getopt')
@@ -50,14 +51,26 @@ function receive_headers (headers) {
   }
 
   from = headers.get('from')
+  console.log('done receive headers')
+  console.log(JSON.stringify(node, null, '  '))
 }
 
 function receive_attachment (attachment) {
+  console.log('receive attachment')
   attachments.push(attachment)
   attachment.release()
 }
 
 function uploadAttachment (attachment, callback) {
+  const def = attachment_types[attachment.contentType]
+  if (!def) {
+    console.error('unknown attachment type', attachment.contentType)
+    return callback()
+  }
+  if (def.skip) {
+    return callback()
+  }
+
   let file
   const mediaRef = {target_id: null}
   node.field_attachments.push(mediaRef)
@@ -68,17 +81,20 @@ function uploadAttachment (attachment, callback) {
       drupal.fileUpload({
 	filename: attachment.filename,
 	content: attachment.content,
-      }, 'media/image/field_media_image',
+      }, 'media/' + def.media_bundle + '/' + def.file_field,
       {},
       done)
     },
     (_file, done) => {
       file = _file
       const media = {
-	bundle: [{ target_id: 'image' }],
-	name: [{ value: attachment.filename, }],
-	field_media_image: [{ target_id: file.fid[0].value }],
+	bundle: [{ target_id: def.media_bundle }],
+	created: node.created,
+	uid: [{target_id: user.uid[0].value}],
+	name: [{value: attachment.filename || def.default_filename}]
       }
+
+      media[def.file_field] = [{target_id: file.fid[0].value}]
 
       drupal.mediaSave(null, media, {}, done)
     },
