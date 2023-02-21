@@ -41,10 +41,10 @@ function receive_headers (headers) {
       references = [references]
     }
 
-    references.each(r => {
+    references.forEach(r => {
       const m = r.match(/^<node-([0-9]+)@stadtverkehr-austria-fotos>/)
       if (m) {
-	node.replyto = [{target_id: m[1]}]
+	node.field_reply_to = [{target_id: m[1]}]
       }
     })
   }
