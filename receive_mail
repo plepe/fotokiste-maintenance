@@ -58,6 +58,7 @@ function receive_attachment (attachment) {
 }
 
 function uploadAttachment (attachment, callback) {
+  let file
   const mediaRef = {target_id: null}
   node.field_attachments.push(mediaRef)
   wait.push(callback)
@@ -69,9 +70,10 @@ function uploadAttachment (attachment, callback) {
 	content: attachment.content,
       }, 'media/image/field_media_image',
       {},
-      done)},
-    (file, done) => {
-
+      done)
+    },
+    (_file, done) => {
+      file = _file
       const media = {
 	bundle: [{ target_id: 'image' }],
 	name: [{ value: attachment.filename, }],
@@ -83,6 +85,14 @@ function uploadAttachment (attachment, callback) {
     (media, done) => {
       mediaRef.target_id = media.mid[0].value
       done()
+    },
+    (done) => {
+      // update author date/uid of file
+      drupal.fileSave(file.fid[0].value, {
+	type: file.type,
+	created: node.created,
+	uid: [{target_id: user.uid[0].value}]
+      }, {}, done)
     }
   ], callback)
   //  content_type: attachment.contentType
