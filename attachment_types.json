@@ -1,0 +1,153 @@
+{
+    "audio/wav": {
+        "media_bundle": "audio",
+        "file_field": "field_media_audio_file",
+        "default_filename": "image.wav"
+    },
+    "audio/mpeg": {
+        "media_bundle": "audio",
+        "file_field": "field_media_audio_file",
+        "default_filename": "image.mp3"
+    },
+    "audio/mp3": {
+        "media_bundle": "audio",
+        "file_field": "field_media_audio_file",
+        "default_filename": "image.mp3"
+    },
+    "audio/mpg": {
+        "media_bundle": "audio",
+        "file_field": "field_media_audio_file",
+        "default_filename": "image.mp3"
+    },
+    "audio/microsoft-wave": {
+        "media_bundle": "audio",
+        "file_field": "field_media_audio_file",
+        "default_filename": "image.wav"
+    },
+    "image/pjpeg": {
+        "media_bundle": "image",
+        "file_field": "field_media_image",
+        "default_filename": "image.jpg"
+    },
+    "image/jpeg": {
+        "media_bundle": "image",
+        "file_field": "field_media_image",
+        "default_filename": "image.jpg",
+        "default_original_filename": "image.tiff"
+    },
+    "image/jpg": {
+        "media_bundle": "image",
+        "file_field": "field_media_image",
+        "default_filename": "image.jpg"
+    },
+    "image/bmp": {
+        "media_bundle": "image",
+        "file_field": "field_media_image",
+        "default_filename": "image.jpg",
+        "out_extension": "jpg",
+        "recode": "convert %in %out"
+    },
+    "image/tiff": {
+        "media_bundle": "image",
+        "file_field": "field_media_image",
+        "default_filename": "image.jpg",
+        "default_original_filename": "image.tiff",
+        "out_extension": "jpg",
+        "recode": "convert %in %out"
+    },
+    "image/gif": {
+        "media_bundle": "image",
+        "file_field": "field_media_image",
+        "default_filename": "image.gif"
+    },
+    "image/png": {
+        "media_bundle": "image",
+        "file_field": "field_media_image",
+        "default_filename": "image.png"
+    },
+    "image/x-png": {
+        "media_bundle": "image",
+        "file_field": "field_media_image",
+        "default_filename": "image.png"
+    },
+    "text/plain": {
+        "media_bundle": "document",
+        "file_field": "field_media_document",
+        "default_filename": "file.txt"
+    },
+    "application/pdf": {
+        "media_bundle": "document",
+        "file_field": "field_media_document",
+        "default_filename": "file.pdf"
+    },
+    "application/msword": {
+        "media_bundle": "document",
+        "file_field": "field_media_document",
+        "default_filename": "file.doc"
+    },
+    "application/vnd.ms-excel": {
+        "media_bundle": "document",
+        "file_field": "field_media_document",
+        "default_filename": "file.xls"
+    },
+    "application/vnd.ms-powerpoint": {
+        "media_bundle": "document",
+        "file_field": "field_media_document",
+        "default_filename": "file.ppt"
+    },
+    "application/vnd.google-earth.kmz": {
+        "media_bundle": "document",
+        "file_field": "field_media_document",
+        "default_filename": "file.kmz"
+    },
+    "text/x-tex": {
+        "media_bundle": "document",
+        "file_field": "field_media_document",
+        "default_filename": "file.tex"
+    },
+    "application/x-zip-compressed": {
+        "skip": true
+    },
+    "application/x-msdownload": {
+        "skip": true
+    },
+    "application/octet-stream": {
+        "skip": true
+    },
+    "application/pkcs7-signature": {
+        "skip": true
+    },
+    "application/ms-tnef": {
+        "skip": true
+    },
+    "message/rfc822": {
+        "skip": true
+    },
+    "text/html": {
+        "skip": true
+    },
+    "text/x-vcard": {
+        "skip": true
+    },
+    "video/quicktime": {
+        "media_bundle": "video",
+        "file_field": "field_media_video_file",
+        "default_filename": "video.mp4",
+        "out_extension": "mp4",
+        "recode": "ffmpeg -y -i %in -acodec aac -strict experimental -vcodec libx264 -preset slow -crf 28 -pix_fmt yuv420p -threads 4 %out"
+    },
+    "video/x-ms-wmv": {
+        "media_bundle": "video",
+        "file_field": "field_media_video_file",
+        "default_filename": "video.mp4",
+        "default_original_filename": "image.wmv",
+        "out_extension": "mp4",
+        "recode": "ffmpeg -y -i %in -acodec aac -strict experimental -vcodec libx264 -preset slow -crf 28 -pix_fmt yuv420p -threads 4 %out"
+    },
+    "multipart/appledouble": {
+        "skip": true
+    },
+    "application/pgp-signature": {
+        "skip": true
+    }
+}
