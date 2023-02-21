@@ -17,10 +17,6 @@ const getUserFromMail = require('./src/getUserFromMail')
 global.fetch = require('node-fetch')
 
 const drupal = new DrupalREST(conf.drupal)
-drupal.login(() => {
-  console.log('logged in')
-  start_mail()
-})
 
 const wait = []
 let from
@@ -77,6 +73,7 @@ function uploadAttachment (attachment, callback) {
   wait.push(callback)
 
   async.waterfall([
+    (done) => drupal.login(done),
     (done) => {
       drupal.fileUpload({
 	filename: attachment.filename,
@@ -178,6 +175,8 @@ mailparser.on('headers', receive_headers)
 mailparser.on('end', data => {
   saveMessage()
 })
+
+start_mail()
 
 function saveMessage (callback) {
   async.waterfall([
